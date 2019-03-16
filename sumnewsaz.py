@@ -10,11 +10,13 @@ def sumnewsaz_lmbd(event, context):
     from nltk.corpus import stopwords ### Stopwords = words that bear no important meaning
     from nltk.tokenize import word_tokenize, sent_tokenize ### Tokenizing words and sentences
     from nltk.stem.snowball import SnowballStemmer ### Keeping a stem of a word
+    from nltk.tokenize import RegexpTokenizer ### To regexp while tokenizing
     import telebot ### Well, Telegram API wrapper, obviously, duh
     import datetime ### For comparing time between runs, diagnostical
     import os ### File checking (if exists)
     import boto3 ### AWS S3 access
     import botocore ### Also AWS S3 access
+    import collections ### Contains Counter() class
 
     ### Time comparison stuff
     currentDT = datetime.datetime.now()
@@ -39,6 +41,7 @@ def sumnewsaz_lmbd(event, context):
     ### Be ready that nltk may ask you to download something else - read any output 
     #nltk.download("stopwords")
     #nltk.download('averaged_perceptron_tagger')
+    #nltk.download('punkt')
 
 
     ############################################################################################################################################################
@@ -55,57 +58,41 @@ def sumnewsaz_lmbd(event, context):
         article_text = ""
         for p in paragraphs:
             article_text += " "+p.text
-
+        
         ### Removing square brackets and extra spaces
-        article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)
+        article_text = re.sub(r'[\[\]]+', ' ', article_text) ### this removes square brackets
         article_text = re.sub(r'\s+', ' ', article_text)
-
+        
         if article_text=="":
             article_text="Paid news. Paid news." ### Protection from trend.az premium empty articles
-
-        ### Removing special characters and digits
-        formatted_article_text = re.sub('[^a-zA-Z]', ' ', article_text )
-        formatted_article_text = re.sub(r'\s+', ' ', formatted_article_text)
 
         ### Define word stems, remove stopwords, tokenize the whole shit, in russian
         stemmer = SnowballStemmer("russian")
         stopWords = set(stopwords.words("russian"))
-        words = word_tokenize(article_text)
+
+        tokenizer = RegexpTokenizer(r'[^\W\d_]+') ### Creates RegexpTokenizer object with regexp that keeps only letters (works for all languages in UTF-8)
+        words = tokenizer.tokenize(article_text) ### returns the list of tokens; the same type as nltk.word_tokenize
+        
         #nltk.data.path=("/nltk_data")
 
         ### Build the frequency table for the words in the whole article
-        freqTable = dict()
-        for word in words:
-                word = word.lower()
-                if word in stopWords:
-                        continue
+        freqTable = collections.Counter()
+        words = [el.lower() for el in words if el.lower() not in stopWords] ### works faster
+        for word in words: 
                 word = stemmer.stem(word)
-
-                if word in freqTable:
-                        freqTable[word] += 1
-                else:
-                        freqTable[word] = 1
+                freqTable[word] += 1
 
         ### Tokenize sentences and give them values depending on the words from above, build a dictionary with values
         sentences = sent_tokenize(article_text)
-        sentenceValue = dict()
+        sentenceValue = collections.Counter() ### works faster and looks cleaner
         for sentence in sentences:
-                if sentence=='':
-                    sentence=' .' ### Protection against sometimes empty sentences, those result in divisionBy0 error in average value calculation
                 for word, freq in freqTable.items():
                         if word in sentence.lower():
-                                if sentence in sentenceValue:
-                                        sentenceValue[sentence] += freq
-                                else:
-                                        sentenceValue[sentence] = freq
+                                sentenceCounter[sentence] += freq
 
-
-        sumValues = 0
-        for sentence in sentenceValue:
-                sumValues += sentenceValue[sentence]
 
         ### Average value of a sentence from original text
-        average = int(sumValues / len(sentenceValue))
+        average = int(sum(sentenceValue.values()) / max(len(sentenceValue),1))
 
         ### Threshold, defined by how large is the original article
         if len(article_text)>7000:
