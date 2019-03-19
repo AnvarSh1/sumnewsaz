@@ -217,6 +217,7 @@ def sumnewsaz_lmbd(event, context):
         '/culture/', '/world/', '/life/', '/tourism/', '/energy/', '/business/finance' ### Remove overall mostly useless news
         '/sport', 'sport.day.az', '/auto-moto/', ### Remove sports news and oxu.az car news (?!)
         'day.az/society/', 'lady.day.az', ### Remove useless day.az news
+        'Ильхам Алиев', 'Ильхама Алиева', 'Ильхамом Алиевым', 'Ильхаму Алиеву'] ###Also pretty useless news
         ]
     dayaz_specific=['Пашинян', 'армян', 'армен', 'paşin', 'trend', 'oxu.az', 'erməni', 'yerevan', 'ереван' ] ### Remove excessive news about Armenia and linked news from day.az
 
