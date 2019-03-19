@@ -218,7 +218,7 @@ def sumnewsaz_lmbd(event, context):
         '/sport', 'sport.day.az', '/auto-moto/', ### Remove sports news and oxu.az car news (?!)
         'day.az/society/', 'lady.day.az', ### Remove useless day.az news
         ]
-    dayaz_specific=['пашинян', 'армян', 'армен', 'paşin', 'trend', 'oxu.az', 'erməni', 'yerevan', 'ереван' ] ### Remove excessive news about Armenia and linked news from day.az
+    dayaz_specific=['Пашинян', 'армян', 'армен', 'paşin', 'trend', 'oxu.az', 'erməni', 'yerevan', 'ереван' ] ### Remove excessive news about Armenia and linked news from day.az
 
 
     ### Let's loop through the list of links, on each iteration we compile message as title+text+link and send it
