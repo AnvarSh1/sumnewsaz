@@ -77,9 +77,8 @@ def sumnewsaz_lmbd(event, context):
 
         ### Build the frequency table for the words in the whole article
         freqTable = collections.Counter()
-        words = [el.lower() for el in words if el.lower() not in stopWords] ### works faster
+        words = [stemmer.stem(el.lower()) for el in words if el.lower() not in stopWords] ### works faster
         for word in words: 
-                word = stemmer.stem(word)
                 freqTable[word] += 1
 
         ### Tokenize sentences and give them values depending on the words from above, build a dictionary with values
